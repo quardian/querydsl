@@ -4,74 +4,33 @@ import com.inho.datajpa.dto.MemberSearchCondition;
 import com.inho.datajpa.dto.MemberTeamDto;
 import com.inho.datajpa.dto.QMemberTeamDto;
 import com.inho.datajpa.entity.Member;
-import com.inho.datajpa.entity.QMember;
-import com.inho.datajpa.entity.QTeam;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.springframework.stereotype.Repository;
+import lombok.RequiredArgsConstructor;
 import org.thymeleaf.util.StringUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import java.util.List;
-import java.util.Optional;
 
 import static com.inho.datajpa.entity.QMember.member;
 import static com.inho.datajpa.entity.QTeam.team;
 
-@Repository
-public class MemberJpaRepository
-{
+public class MemberRepositoryImpl implements MemberRepositoryCustom{
 	@PersistenceContext
 	private EntityManager em;
 	private final JPAQueryFactory queryFactory;
 
-	public MemberJpaRepository(EntityManager em) {
+	public MemberRepositoryImpl(EntityManager em) {
 		this.em = em;
 		this.queryFactory = new JPAQueryFactory(em);
 	}
 
-	public Member save(Member member)
-	{
-		em.persist(member);
-		return member;
-	}
+	@Override
+	public List<MemberTeamDto> searchByBuilder(MemberSearchCondition condition) {
 
-	public Member find(Long id){
-		return em.find(Member.class, id);
-	}
-
-	public Optional<Member> findById(Long id)
-	{
-		Member member = em.find(Member.class, id);
-		return Optional.ofNullable(member);
-	}
-
-	public List<Member> findAll(){
-//		return em.createQuery("select m from Member m ", Member.class)
-//				.getResultList();
-		return queryFactory
-				.select(member)
-				.from(member)
-				.fetch();
-	}
-
-	public List<Member> findByUsername(String username){
-		/*		return em.createQuery("select m from Member m where m.username = :username ", Member.class)
-				.setParameter("username", username)
-				.getResultList();*/
-		return queryFactory
-				.select(member)
-				.from(member)
-				.where(member.username.eq(username))
-				.fetch();
-	}
-
-
-	public List<MemberTeamDto> searchByBuilder(MemberSearchCondition condition)
-	{
 		BooleanBuilder builder = new BooleanBuilder();
 
 		if (!StringUtils.isEmpty(condition.getUserName())) {
@@ -89,17 +48,19 @@ public class MemberJpaRepository
 
 		return queryFactory
 				.select( new QMemberTeamDto(
-							member.id.as("memberId"),
-							member.username,
-							member.age,
-							team.id.as("teamId"),
-							team.name.as("teamName")) )
+						member.id.as("memberId"),
+						member.username,
+						member.age,
+						team.id.as("teamId"),
+						team.name.as("teamName")) )
 				.from(member)
 				.join(member.team, team)
 				.where(builder)
 				.fetch();
+
 	}
 
+	@Override
 
 	public List<MemberTeamDto> search(MemberSearchCondition condition)
 	{
@@ -135,6 +96,4 @@ public class MemberJpaRepository
 	private BooleanExpression usernameEq(String userName) {
 		return (!StringUtils.isEmpty(userName)) ? member.username.eq(userName) : null;
 	}
-
-
 }

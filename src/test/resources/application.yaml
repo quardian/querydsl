@@ -1,16 +1,17 @@
 spring:
   profiles:
-    active: local
+    active: test
 
-  datasource:
+  database:
     url: jdbc:h2:tcp://localhost/~/datajpa
     username: sa
     password:
     driver-class-name: org.h2.Driver
 
   jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         show_sql: true    #Hibernate가 DB에 날리는 모든 쿼리(DDL, DML)을 보여준다.
@@ -22,4 +23,4 @@ logging:
     org:
       hibernate:
         type:
-          #descriptor: trace  #SQL 파라메타 볼 수 있다.
+          descriptor: trace  #SQL 파라메타 볼 수 있다.
